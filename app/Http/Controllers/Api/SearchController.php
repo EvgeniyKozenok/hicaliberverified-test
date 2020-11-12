@@ -31,12 +31,9 @@ class SearchController extends Controller
             $q->whereBetween('price', [$input[0], $input[1]]);
         });
 
-        $response = [
+        return response()->json([
             'success' => true,
-            'data'    => $q->get(),
-            'message' => 'lalalal',
-        ];
-
-        return response()->json($response);
+            'data'    => $q->get()
+        ]);
     }
 }
