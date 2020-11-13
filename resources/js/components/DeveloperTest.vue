@@ -39,7 +39,7 @@
                 </el-menu-item>
 
             </el-menu>
-            <el-button type="primary" icon="el-icon-search" @click="serverRequest">Search</el-button>
+            <el-button type="primary" icon="el-icon-search" @click="formSubmitHandler">Search</el-button>
         </el-aside>
 
         <el-container>
@@ -48,14 +48,31 @@
             </el-header>
 
             <el-main>
-                <el-table :data="tableData">
-                    <el-table-column prop="name" label="Name"/>
-                    <el-table-column prop="price" label="Price" width="140"/>
-                    <el-table-column prop="bedrooms" label="Bedrooms" width="120"/>
-                    <el-table-column prop="bathrooms" label="Bathrooms" width="120"/>
-                    <el-table-column prop="storeys" label="Storeys" width="120"/>
-                    <el-table-column prop="garages" label="Garages" width="120"/>
-                </el-table>
+                <div v-if="tableData.length">
+                    <el-table :data="tableData" >
+                        <el-table-column prop="name" label="Name"/>
+                        <el-table-column prop="price" label="Price" width="140"/>
+                        <el-table-column prop="bedrooms" label="Bedrooms" width="120"/>
+                        <el-table-column prop="bathrooms" label="Bathrooms" width="120"/>
+                        <el-table-column prop="storeys" label="Storeys" width="120"/>
+                        <el-table-column prop="garages" label="Garages" width="120"/>
+                    </el-table>
+
+                    <el-pagination
+                        background
+                        layout="prev, pager, next"
+                        :total="serverDada.total"
+                        :page-size="serverDada.per_page"
+                        :current-page.sync="serverDada.current_page"
+                        @current-change="handleCurrentChange"
+                    >
+                    </el-pagination>
+                </div>
+                <el-alert v-else
+                          title="Nothing to display"
+                          type="warning"
+                          effect="dark">
+                </el-alert>
             </el-main>
         </el-container>
     </el-container>
@@ -79,7 +96,7 @@ export default {
             bathrooms: 0,
             storeys: 0,
             garages: 0,
-            page: 1
+            serverDada: {}
         }
     },
     methods: {
@@ -106,6 +123,14 @@ export default {
                 params.append(paramName, paramValue);
             }
         },
+        handleCurrentChange(val) {
+            this.serverDada.current_page = val;
+            this.serverRequest();
+        },
+        formSubmitHandler() {
+            this.serverDada.current_page = 1;
+            this.serverRequest();
+        },
         serverRequest () {
             const params = new URLSearchParams();
             this.addParam(params, 'name', this.name);
@@ -113,11 +138,14 @@ export default {
             this.addParam(params, 'bedrooms', this.bedrooms);
             this.addParam(params, 'storeys', this.storeys);
             this.addParam(params, 'garages', this.garages);
+            this.addParam(params, 'page', this.serverDada.current_page);
 
             axios.get('/api/search', {params: params})
                 .then(response => {
                     if (response.data.success) {
-                        this.tableData = response.data.data
+                        this.serverDada = response.data.data;
+                        this.total = this.serverDada.total;
+                        this.tableData = this.serverDada.data
                     }
                 })
                 .catch(error => (console.log(error)));

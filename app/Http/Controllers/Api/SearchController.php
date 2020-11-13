@@ -33,7 +33,7 @@ class SearchController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $q->get()
+            'data' => $q->paginate(2)
         ]);
     }
 }
